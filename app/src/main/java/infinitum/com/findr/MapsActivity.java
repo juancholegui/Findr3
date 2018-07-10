@@ -1,15 +1,15 @@
 package infinitum.com.findr;
 
-import android.app.AlertDialog;
+
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
-import android.provider.Settings;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.*;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -31,10 +31,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -43,18 +39,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private DatabaseReference mDatabase;
     private ChildEventListener mChildEventListener;
 
+    private static final int ACTIVITY_NUM = 1;
+    private Context mContext = MapsActivity.this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+
+        int status= GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+
+        if(status== ConnectionResult.SUCCESS){
 
 
-        mDatabase = FirebaseDatabase.getInstance().getReference("bar_name");
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+
+
+        } else {
+
+            Dialog dialog =GooglePlayServicesUtil.getErrorDialog(status,(Activity)getApplicationContext(),10);
+            dialog.show();
+
+        }
+
+        mDatabase = FirebaseDatabase.getInstance().getReference("bar_location");
 
 
     }
@@ -75,38 +86,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Add a marker in Sydney and move the camera
         LatLng bogota = new LatLng(4.6097100, -74.0817500);
-        mMap.addMarker(new MarkerOptions().position(bogota).title("Bogotá"));
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().zoom(15).target(bogota).build();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bogota,13));
 
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        //get marker info from Firebase Database and add to map
-        addMarkersToMap(googleMap);
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        googleMap.setMyLocationEnabled(true);
-    }
-
-    @Override
-    public void onStop() {
-        if (mChildEventListener != null)
-            mDatabase.removeEventListener(mChildEventListener);
-        super.onStop();
-    }
-
-    private void addMarkersToMap(GoogleMap map) {
-
+        //getting locations from firebase realtime database
         mChildEventListener = mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 LocationData marker = dataSnapshot.getValue(LocationData.class);
-                double latitude = marker.getLatitude();
-                double longitude = marker.getLongitud();
-                String barName = marker.getBarName();
+                double latitude = marker.getLat();
+                double longitude = marker.getLng();
+                String barName = marker.getBar_name();
                 LatLng location = new LatLng(latitude, longitude);
-                mMap.addMarker(new MarkerOptions().position(location).title(barName));
+
+                // You can customize the marker image using images bundled with
+                // your app, or dynamically generated bitmaps.
+                mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_house_flag))
+                        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+                        .position(location)
+                        .title(barName));
+
             }
 
             @Override
@@ -129,5 +129,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
     }
+
+    @Override
+    public void onStop() {
+        if (mChildEventListener != null)
+            mDatabase.removeEventListener(mChildEventListener);
+        super.onStop();
+    }
+
 }

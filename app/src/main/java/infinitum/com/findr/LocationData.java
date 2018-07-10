@@ -2,41 +2,41 @@ package infinitum.com.findr;
 
 public class LocationData {
 
-    public double latitude;
-    public double longitud;
-    public String barName;
+    public double lat;
+    public double lng;
+    public String bar_name;
 
     public LocationData(){
 
     }
 
-    public LocationData(double latitude, double longitud, String barName) {
-        this.latitude = latitude;
-        this.longitud = longitud;
-        this.barName = barName;
+    public LocationData(double lat, double lng, String bar_name) {
+        this.lat = lat;
+        this.lng = lng;
+        this.bar_name = bar_name;
     }
 
-    public double getLatitude() {
-        return latitude;
+    public double getLat() {
+        return lat;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setLat(double lat) {
+        this.lat = lat;
     }
 
-    public double getLongitud() {
-        return longitud;
+    public double getLng() {
+        return lng;
     }
 
-    public void setLongitud(double longitud) {
-        this.longitud = longitud;
+    public void setLng(double lng) {
+        this.lng = lng;
     }
 
-    public String getBarName() {
-        return barName;
+    public String getBar_name() {
+        return bar_name;
     }
 
-    public void setBarName(String barName) {
-        this.barName = barName;
+    public void setBar_name(String bar_name) {
+        this.bar_name = bar_name;
     }
 }

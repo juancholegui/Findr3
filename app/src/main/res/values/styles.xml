@@ -12,6 +12,12 @@
 
 
 
+    <style name="menu_style">
+        <item name="android:background">@drawable/lablestyle</item>
+        <item name="android:textColor">@color/yellow </item>
+    </style>
+
+
     <style name="CoTheme" parent="Theme.AppCompat.Light.NoActionBar" >
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
